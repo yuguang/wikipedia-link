@@ -85,7 +85,8 @@ function cacheAutoUpdate() {
 		// update description
 		var cacheWikipediaLinks = function(){
 			$.postCORS(  
-				ajax_url + 'calendar/cache/desc/',  
+				ajax_url + 'calendar/cache/desc/',
+        // TODO change #description
 				{description: $('#description').html(), course: $(".main").text()}
 			);
 		};
