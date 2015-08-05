@@ -6,8 +6,8 @@ $(document).ready(function() {
 	*/
 
 	function generateWikipediaLinks() {
-    // TODO change #description
-		var sentences = $('#description').text().replace(/\[.*\]/, '').split(". ");
+		var sentences = $('#input').text().replace(/\[.*\]/, '').split(". ");
+    $('#output').text($('#input').text());
 		var phrases, terms, i;
 		var text = [];
 		for (i in sentences) {
@@ -45,7 +45,7 @@ $(document).ready(function() {
 				function isPossesiveProperNoun(wordCount, words) {
 					return ((wordCount + 2) < words.length) && (words[wordCount].tag == 'NNP') && (words[wordCount + 1].tag == 'POS');
 				}
-				// This routine takes a list of tagged words and the starting word's index . It returns the longest sequence of nouns or adjectives with the given starting word. The input is an array of words. The output is a string.
+				// This routine takes   a list of tagged words and the starting word's index . It returns the longest sequence of nouns or adjectives with the given starting word. The input is an array of words. The output is a string.
 				function nounSequence(wordCount, words) {
 					var nounSequence = [];
 					// while next word is a noun
@@ -94,5 +94,9 @@ $(document).ready(function() {
 			});
 		}
 	}
+
+  $('#start').click(function(){
+    generateWikipediaLinks();
+  });
 
 });

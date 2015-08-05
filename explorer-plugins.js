@@ -1,5 +1,6 @@
+var $output = $('#output');
 function textMatches(text) {
-	return $('#description').text().indexOf(text)!=-1;
+	return $output.text().indexOf(text)!=-1;
 }
 
 function getLink(text, url) {
@@ -7,11 +8,11 @@ function getLink(text, url) {
 }
 
 function insertLink(text, link) {
-	$('#description').html($('#description').html().replace(text, link));
+	$output.html($output.html().replace(text, link));
 }
 
 function linkIsNew(text, link) {
-	return ($('#description').html().indexOf(link)==-1) && ($('#description a[target|=_blank]').text().indexOf(text)==-1);
+	return ($output.html().indexOf(link)==-1) && ($('#description a[target|=_blank]').text().indexOf(text)==-1);
 }
 
 function insertLinkSuccessful(text, term){
@@ -34,7 +35,6 @@ function insertLinkIfCategoryMatches(text, term){
 			}
 			// subtract 1 from the wikipedia link count
 			g_wikipediaLinkCount -= 1;
-			cacheAutoUpdate();
 		},
 		"json"
 	);
@@ -76,22 +76,6 @@ function insertLinkIfTechnical(data) {
 	}
 	// subtract 1 from the wikipedia link count
 	g_wikipediaLinkCount -= 1;
-	cacheAutoUpdate();
-}		
-
-function cacheAutoUpdate() {
-	// if count is zero and no links are present in description initially loaded
-	if ((g_wikipediaLinkCount == 0) && !g_wikipediaLinksCached) {
-		// update description
-		var cacheWikipediaLinks = function(){
-			$.postCORS(  
-				ajax_url + 'calendar/cache/desc/',
-        // TODO change #description
-				{description: $('#description').html(), course: $(".main").text()}
-			);
-		};
-		setTimeout(cacheWikipediaLinks, 250);
-	}
 }
 
 // Wikipedia Auto Link
@@ -132,7 +116,6 @@ var linkterm = function (data) {
 			insertLinkIfCategoryMatches(this.text, data[1][0]);
 		}
 	}
-	cacheAutoUpdate();
 };
 
 (function($) {
@@ -205,7 +188,6 @@ $.postCORS = function (url, data, callback, type) {
 })(jQuery);
 var _gaq;
 var g_wikipediaLinkCount = 0;
-var g_wikipediaLinksCached = $('#description a').length ? true : false;
 var g_wikipediaLinkDict = {};
 var g_uClassifyTopic = '';
 var g_uClassifyPercent = 0;
