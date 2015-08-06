@@ -1,197 +1,3 @@
-var $output = $('#output');
-function textMatches(text) {
-	return $output.text().indexOf(text)!=-1;
-}
-
-function getLink(text, url) {
-	return ['<a target="_blank" href="', url, '">', text, '</a>'].join('');
-}
-
-function insertLink(text, link) {
-	$output.html($output.html().replace(text, link));
-}
-
-function linkIsNew(text, link) {
-	return ($output.html().indexOf(link)==-1) && ($('#description a[target|=_blank]').text().indexOf(text)==-1);
-}
-
-function insertLinkSuccessful(text, term){
-	url ='http://en.wikipedia.org/wiki/' + term;
-	link = getLink(text, url);
-	if (linkIsNew(text, link)) {
-		insertLink(text, link);
-		return true;
-	}
-	return false;
-}
-
-function insertLinkIfCategoryMatches(text, term){
-	$.postCORS(
-		ajax_url + 'ajax/uclassify.php',
-		{text:term},
-		function(j){
-			if((j.cls1[g_uClassifyTopic]/g_uClassifyPercent)>.5){
-				insertLinkSuccessful(text, term);
-			}
-			// subtract 1 from the wikipedia link count
-			g_wikipediaLinkCount -= 1;
-		},
-		"json"
-	);
-}
-	
-// This routine inserts the Wikipedia link for the term if it is a technical article. Otherwise, no links are inserted. 
-function insertLinkIfTechnical(data) {
-	// set page to first item of query pages
-	var pages = data.query.pages;
-	// if page has the categories
-	for(var pageIndex in pages) {
-		if(!pages.hasOwnProperty(pageIndex)) continue;
-		var page = pages[pageIndex];
-		if (!page.hasOwnProperty('categories')) continue;
-		// initialize category count
-		var categoryCount = 0;
-		// for every category
-		for (categoryIndex in page['categories']) {
-			var category = page['categories'][categoryIndex];
-			// if the title of the category is significant
-			var titleFirstWord = category['title'].replace('Category:', '').split(' ')[0];
-			if ("All Articles Wikipedia Use".indexOf(titleFirstWord) == -1) {
-				// increment the category count
-				categoryCount += 1;
-			}
-			// if category is a disambiguation page
-			if (category['title'] == "Category:Disambiguation pages") {
-				// set category count to zero
-				categoryCount = 0;
-				// break out of loop
-				break;
-			}
-		}
-		// if category count is greater than 4
-		if (categoryCount > 4) {
-			// insert the Wikipedia link
-			if (insertLinkSuccessful(g_wikipediaLinkDict[page.title], page.title)) break;
-		}
-	}
-	// subtract 1 from the wikipedia link count
-	g_wikipediaLinkCount -= 1;
-}
-
-// Wikipedia Auto Link
-var linkterm = function (data) {
-	var url='', link;
-	this.text = data[0];
-	
-	// subtract 1 from the wikipedia link count
-	g_wikipediaLinkCount -= 1;
-	
-	if ((1 < data[1].length) && (data[1].length < 10)) {
-		// for the 2nd and 3rd matches
-		for (var i = 1; i < data[1].length && i < 6; i++) {
-			// if the phrase is found in the description
-			if (textMatches(data[1][i]) && (this.text.length < data[1][i].length)) {
-				// insert the link
-				if (insertLinkSuccessful(data[1][i], data[1][i])) break;
-			}
-		}
-	} 
-	// First item in list matches search term
-	if (data[1].length && this.text.toLowerCase () == data[1][0].toLowerCase()) {
-		g_wikipediaLinkDict[data[1][0]] = this.text;
-		// word(s) are too common or ambiguous
-		if (data[1].length > 9) {
-			// don't update cache until callback is completed
-			g_wikipediaLinkCount += 1;
-			$LAB.script('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=categories&callback=insertLinkIfTechnical&titles=' + data[1][0]);
-		}
-		// multiple words
-		else if (this.text.split(' ').length > 1){
-			insertLinkSuccessful(this.text, data[1][0]);
-		}
-		// single word
-		else if (g_uClassifyTopic.length && g_uClassifyPercent) {				
-			// don't update cache until callback is completed
-			g_wikipediaLinkCount += 1;
-			insertLinkIfCategoryMatches(this.text, data[1][0]);
-		}
-	}
-};
-
-(function($) {
-$.getCORS = function (url, data, callback, type) {
-    // try XDR
-    if (jQuery.browser.msie && window.XDomainRequest) {
-        var params = '';
-        for (var key in data) {
-            params += ((params || url.indexOf("?") != -1)?'&':'?')+key+'='+escape(data[key]).replace(/\//g, '%2F').replace(/\+/g, '%2B');
-        }
-        // Use Microsoft XDR
-        var xdr = new XDomainRequest();
-		xdr.onerror = function () {};
-		xdr.ontimeout = function () {};
-		xdr.onprogress = function () {};
-		xdr.onload = function() {
-			if (type == undefined){
-				return;
-			} else if(type == 'xml'){
-				var dom = new ActiveXObject("Microsoft.XMLDOM");
-				dom.async = false;
-				dom.loadXML(this.responseText);
-				callback(dom);
-			} else if (type=='json') {
-				callback(eval( '(' + this.responseText + ')'));
-			} else {
-				callback(this.responseText);
-			}
-        };
-		xdr.timeout = 5000;
-        xdr.open("GET", url+params);
-        xdr.send();
-    } else {
-        jQuery.get(url, data, callback, type);
-    }
-};
-$.postCORS = function (url, data, callback, type) {
-    // Try XDR
-    if (jQuery.browser.msie && window.XDomainRequest) {
-        var params = '';
-        for (var key in data) {
-            params += (params?'&':'')+key+'='+data[key];
-        }
-        // Use XDR
-        var xdr = new XDomainRequest();
-		xdr.onerror = function () {};
-		xdr.ontimeout = function () {};
-		xdr.onprogress = function () {};
-		xdr.onload = function() {
-			if (type == undefined){
-				return;
-			} else if(type == 'xml'){
-				var dom = new ActiveXObject("Microsoft.XMLDOM");
-				dom.async = false;
-				dom.loadXML(this.responseText);
-				callback(dom);
-			} else if (type=='json') {
-				callback(eval( '(' + this.responseText + ')'));
-			} else {
-				callback(this.responseText);
-			}
-        };
-		xdr.timeout = 5000;
-		xdr.open("POST", url);
-		xdr.send(params);
-    } else {
-        jQuery.post(url, data, callback, type);
-    }
-};
-})(jQuery);
-var _gaq;
-var g_wikipediaLinkCount = 0;
-var g_wikipediaLinkDict = {};
-var g_uClassifyTopic = '';
-var g_uClassifyPercent = 0;
-var g_wikipediaSearchTerms = [];
 function iconify(){
 	$("a[href$='.pdf']").removeClass("internal").addClass("pdf");
 	$("a[href$='.doc'], a[href$='.txt'], a[href$='.rft']").removeClass("internal").addClass("txt");
@@ -230,3 +36,17 @@ if (!jQuery.event.special.frame) {
         bottom:1},o={px:/^\d+\s?px$/,percent:/^\d+\s?%$/},p="frame."+n,u=Math.abs,w=[0,0];y.lib=v;l.fn[n]=function(i){var b=l.extend({},l.fn[n].options,i),k=arguments,e=this;if(!(b.mouseport instanceof l))b.mouseport=l(b.mouseport);b.port=new z(b.mouseport,b);b.mouse=new r(b);b.mouseport.bind("mouseenter",function(){b.mouse.ontarget=false;e.each(function(){var a=l(this);a.data(n).freeze||a.bind(p,b,s)})});return e.bind("freeze",function(a){var g=l(this),d=
         g.data(n),h=d.mouse||d.freeze||b.mouse,j=o.percent.exec(a.x)?parseFloat(a.x.replace(/%$/,""))/100:a.x||h.pointer[0],c=o.percent.exec(a.y)?parseFloat(a.y.replace(/%$/,""))/100:a.y||h.pointer[1];a=a.decay;d.freeze={pointer:[j,c]};d.mouse=new r(b,h.pointer);if(a!==t)d.mouse.decay=a;g.bind(p,b,s)}).bind("unfreeze",function(a){var g=l(this),d=g.data(n);a=a.decay;var h;if(d.freeze){h=d.mouse?d.mouse.pointer:d.freeze.pointer;d.mouse=new r(b);d.mouse.pointer=h;if(a!==t)d.mouse.decay=a;delete d.freeze;g.removeClass(x.freezeClass).bind(p,
             b,s)}}).each(function(a){var g=l(this);a=k[a+1]?l.extend({},b,k[a+1]):b;var d=new A(g,a);g.data(n,{layer:d,mouse:new r(a,d.getPointer())})})};l.fn[n].options=x;l(document).ready(function(){l(document).mousemove(function(i){w=[i.pageX,i.pageY]})})})(jQuery);
+/*!
+ * jQuery Browser Plugin 0.0.8
+ * https://github.com/gabceb/jquery-browser-plugin
+ *
+ * Original jquery-browser code Copyright 2005, 2015 jQuery Foundation, Inc. and other contributors
+ * http://jquery.org/license
+ *
+ * Modifications Copyright 2015 Gabriel Cebrian
+ * https://github.com/gabceb
+ *
+ * Released under the MIT license
+ *
+ * Date: 05-07-2015
+ */!function(a){"function"==typeof define&&define.amd?define(["jquery"],function(b){return a(b)}):"object"==typeof module&&"object"==typeof module.exports?module.exports=a(require("jquery")):a(window.jQuery)}(function(a){"use strict";function b(a){void 0===a&&(a=window.navigator.userAgent),a=a.toLowerCase();var b=/(edge)\/([\w.]+)/.exec(a)||/(opr)[\/]([\w.]+)/.exec(a)||/(chrome)[ \/]([\w.]+)/.exec(a)||/(version)(applewebkit)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/.exec(a)||/(webkit)[ \/]([\w.]+).*(version)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/.exec(a)||/(webkit)[ \/]([\w.]+)/.exec(a)||/(opera)(?:.*version|)[ \/]([\w.]+)/.exec(a)||/(msie) ([\w.]+)/.exec(a)||a.indexOf("trident")>=0&&/(rv)(?::| )([\w.]+)/.exec(a)||a.indexOf("compatible")<0&&/(mozilla)(?:.*? rv:([\w.]+)|)/.exec(a)||[],c=/(ipad)/.exec(a)||/(ipod)/.exec(a)||/(iphone)/.exec(a)||/(kindle)/.exec(a)||/(silk)/.exec(a)||/(android)/.exec(a)||/(windows phone)/.exec(a)||/(win)/.exec(a)||/(mac)/.exec(a)||/(linux)/.exec(a)||/(cros)/.exec(a)||/(playbook)/.exec(a)||/(bb)/.exec(a)||/(blackberry)/.exec(a)||[],d={},e={browser:b[5]||b[3]||b[1]||"",version:b[2]||b[4]||"0",versionNumber:b[4]||b[2]||"0",platform:c[0]||""};if(e.browser&&(d[e.browser]=!0,d.version=e.version,d.versionNumber=parseInt(e.versionNumber,10)),e.platform&&(d[e.platform]=!0),(d.android||d.bb||d.blackberry||d.ipad||d.iphone||d.ipod||d.kindle||d.playbook||d.silk||d["windows phone"])&&(d.mobile=!0),(d.cros||d.mac||d.linux||d.win)&&(d.desktop=!0),(d.chrome||d.opr||d.safari)&&(d.webkit=!0),d.rv||d.edge){var f="msie";e.browser=f,d[f]=!0}if(d.safari&&d.blackberry){var g="blackberry";e.browser=g,d[g]=!0}if(d.safari&&d.playbook){var h="playbook";e.browser=h,d[h]=!0}if(d.bb){var i="blackberry";e.browser=i,d[i]=!0}if(d.opr){var j="opera";e.browser=j,d[j]=!0}if(d.safari&&d.android){var k="android";e.browser=k,d[k]=!0}if(d.safari&&d.kindle){var l="kindle";e.browser=l,d[l]=!0}if(d.safari&&d.silk){var m="silk";e.browser=m,d[m]=!0}return d.name=e.browser,d.platform=e.platform,d}return window.jQBrowser=b(window.navigator.userAgent),window.jQBrowser.uaMatch=b,a&&(a.browser=window.jQBrowser),window.jQBrowser});
