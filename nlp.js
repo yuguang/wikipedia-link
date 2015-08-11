@@ -8,7 +8,7 @@ var ajax_url = 'http://localhost/static/';
 var $output = $('#output');
 var $input = $('#input');
 var NUM_CATEGORIES = 2;
-var TOPIC_MATCH_RATIO = .7;
+var TOPIC_MATCH_RATIO = .8;
 function textMatches(text) {
 	return $output.text().indexOf(text)!=-1;
 }
@@ -248,7 +248,7 @@ $(document).ready(function() {
 				function isPossesiveProperNoun(wordCount, words) {
 					return ((wordCount + 2) < words.length) && (words[wordCount].tag == 'NNP') && (words[wordCount + 1].tag == 'POS');
 				}
-				// This routine takes   a list of tagged words and the starting word's index . It returns the longest sequence of nouns or adjectives with the given starting word. The input is an array of words. The output is a string.
+				// This routine takes a list of tagged words and the starting word's index . It returns the longest sequence of nouns or adjectives with the given starting word. The input is an array of words. The output is a string.
 				function nounSequence(wordCount, words) {
 					var nounSequence = [];
 					// while next word is a noun
@@ -277,13 +277,14 @@ $(document).ready(function() {
 							var sequence = nounSequence(n + 1, data.words);
 							if (sequence.length) {
 								searchTerm = data.words[n].value + ' ' + sequence;
-								if (isNoun(n + 1, data.words)) {
-									// skip the next word, since the adjective describes the noun
+								if (isNoun(n + 1, data.words) && sequence.split(' ').length == 2) {
+									// skip the next word if the phrase is two words, since the adjective describes the noun
 									n += 1;
 								}
 							}
 						}
 						if (((n + 1) < data.words.length) && (data.words[n + 1].tag in nounPlurals) && (searchTerm[searchTerm.length-1] == 's')) {
+              // remove ending 's' from plural words
 							searchTerm = searchTerm.slice(0,searchTerm.length-1);
 						}
 					}
