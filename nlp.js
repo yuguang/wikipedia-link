@@ -7,6 +7,8 @@ var g_wikipediaSearchTerms = [];
 var ajax_url = 'http://localhost/static/';
 var $output = $('#output');
 var $input = $('#input');
+var NUM_CATEGORIES = 2;
+var TOPIC_MATCH_RATIO = .7;
 function textMatches(text) {
 	return $output.text().indexOf(text)!=-1;
 }
@@ -20,7 +22,7 @@ function insertLink(text, link) {
 }
 
 function linkIsNew(text, link) {
-	return ($output.html().indexOf(link)==-1) && ($('#description a[target|=_blank]').text().indexOf(text)==-1);
+	return ($output.html().indexOf(link)==-1) && ($('#output a[target|=_blank]').text().indexOf(text)==-1);
 }
 
 function insertLinkSuccessful(text, term){
@@ -33,19 +35,24 @@ function insertLinkSuccessful(text, term){
 	return false;
 }
 
-function insertLinkIfCategoryMatches(text, term){
-	$.postCORS(
-		ajax_url + 'ajax/uclassify.php',
-		{text:term},
-		function(j){
-			if((j.cls1[g_uClassifyTopic]/g_uClassifyPercent)>.5){
-				insertLinkSuccessful(text, term);
-			}
-			// subtract 1 from the wikipedia link count
-			g_wikipediaLinkCount -= 1;
-		},
-		"json"
-	);
+function checkLinkCategory(data) {
+  var title = data.parse.title.toLowerCase();
+  $.postCORS(
+    ajax_url + 'ajax/uclassify.php',
+    {text: data.parse.text['*']},
+    function(json){
+      if((json.cls1[g_uClassifyTopic]/g_uClassifyPercent)>TOPIC_MATCH_RATIO){
+        $LAB.script('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=categories&callback=insertLinkIfTechnical&titles=' + title);
+      }
+      // subtract 1 from the wikipedia link count
+      g_wikipediaLinkCount -= 1;
+    },
+    "json"
+  );
+}
+
+function insertLinkIfPageCategoryMatches(text, term){
+  $LAB.script('http://en.wikipedia.org/w/api.php?action=parse&format=json&callback=checkLinkCategory&page=' + term);
 }
 
 // This routine inserts the Wikipedia link for the term if it is a technical article. Otherwise, no links are inserted.
@@ -76,8 +83,8 @@ function insertLinkIfTechnical(data) {
 				break;
 			}
 		}
-		// if category count is greater than 4
-		if (categoryCount > 4) {
+		// if category count is greater than 2
+		if (categoryCount > NUM_CATEGORIES) {
 			// insert the Wikipedia link
 			if (insertLinkSuccessful(g_wikipediaLinkDict[page.title], page.title)) break;
 		}
@@ -108,7 +115,7 @@ var linkterm = function (data) {
 	if (data[1].length && this.text.toLowerCase () == data[1][0].toLowerCase()) {
 		g_wikipediaLinkDict[data[1][0]] = this.text;
 		// word(s) are too common or ambiguous
-		if (data[1].length > 9) {
+		if (data[1].length > 20) {
 			// don't update cache until callback is completed
 			g_wikipediaLinkCount += 1;
 			$LAB.script('http://en.wikipedia.org/w/api.php?action=query&format=json&prop=categories&callback=insertLinkIfTechnical&titles=' + data[1][0]);
@@ -121,7 +128,7 @@ var linkterm = function (data) {
 		else if (g_uClassifyTopic.length && g_uClassifyPercent) {
 			// don't update cache until callback is completed
 			g_wikipediaLinkCount += 1;
-			insertLinkIfCategoryMatches(this.text, data[1][0]);
+			insertLinkIfPageCategoryMatches(this.text, data[1][0]);
 		}
 	}
 };
@@ -202,8 +209,8 @@ $(document).ready(function() {
 	*/
 
 	function generateWikipediaLinks() {
-		var sentences = $input.text().replace(/\[.*\]/, '').split(". ");
-    $output.text($input.text());
+		var sentences = $input.val().replace(/\[.*\]/, '').split(". ");
+    $output.text($input.val());
 		var phrases, terms, i;
 		var text = [];
 		for (i in sentences) {
@@ -299,7 +306,7 @@ $(document).ready(function() {
     g_wikipediaSearchTerms = [];
     $.postCORS(
 			ajax_url + 'ajax/uclassify.php',
-			{text:$input.text()},
+			{text:$input.val()},
 			function(json) {
         var topic, percent;
         for (i in json.cls1) {
@@ -310,7 +317,7 @@ $(document).ready(function() {
         }
         generateWikipediaLinks();
       }
-    );
+    , 'json');
   });
 
 });
