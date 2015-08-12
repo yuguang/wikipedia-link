@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="LAB.min.js" type="text/javascript"></script>
+    <script src="helpers.js" type="text/javascript"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="http://underscorejs.org/underscore-min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-5">
+            <div>
+            <textarea rows="3" id="human" class="form-control custom-control" placeholder="Actual Wikipedia HTML..."
+                      style="resize:none"><p><b>Internet Protocol version 6</b> (<b>IPv6</b>) is the most recent version of the <a href="/wiki/Internet_Protocol" title="Internet Protocol">Internet Protocol</a> (IP), the <a href="/wiki/Communications_protocol" title="Communications protocol">communications protocol</a> that provides an identification and location system for computers on networks and routes traffic across the <a href="/wiki/Internet" title="Internet">Internet</a>. IPv6 was developed by the <a href="/wiki/Internet_Engineering_Task_Force" title="Internet Engineering Task Force">Internet Engineering Task Force</a> (IETF) to deal with the long-anticipated problem of <a href="/wiki/IPv4_address_exhaustion" title="IPv4 address exhaustion">IPv4 address exhaustion</a>. IPv6 is intended to replace <a href="/wiki/IPv4" title="IPv4">IPv4</a>.</p>
+<p>Every device on the Internet is assigned an <a href="/wiki/IP_address" title="IP address">IP address</a> for identification and location definition. With the rapid growth of the Internet after commercialization in the 1990s, it became evident that far more addresses than the IPv4 address space has available were necessary to connect new devices in the future. By 1998, the <a href="/wiki/Internet_Engineering_Task_Force" title="Internet Engineering Task Force">Internet Engineering Task Force</a> (IETF) had formalized the successor protocol. IPv6 uses a 128-bit address, allowing 2<sup>128</sup>, or approximately <span class="nowrap"><span style="display:none" class="sortkey">7038340000000000000♠</span>3.4<span style="margin-left:0.25em;margin-right:0.15em">×</span>10<sup>38</sup></span> addresses, or more than <span class="nowrap"><span style="display:none" class="sortkey">7028790000000000000♠</span>7.9<span style="margin-left:0.25em;margin-right:0.15em">×</span>10<sup>28</sup></span> times as many as IPv4, which uses 32-bit addresses and provides approximately 4.3 billion addresses. The two protocols are not designed to be <a href="/wiki/Interoperable" title="Interoperable" class="mw-redirect">interoperable</a>, complicating the transition to IPv6. However, several <a href="/wiki/IPv6_transition_mechanisms" title="IPv6 transition mechanisms" class="mw-redirect">IPv6 transition mechanisms</a> have been devised to permit communication between IPv4 and IPv6 hosts.</p>
+<p>IPv6 provides other technical benefits in addition to a larger addressing space. In particular, it permits hierarchical address allocation methods that facilitate route aggregation across the Internet, and thus limit the expansion of routing tables. The use of multicast addressing is expanded and simplified, and provides additional optimization for the delivery of services. Device mobility, security, and configuration aspects have been considered in the design of the protocol.</p>
+<p>IPv6 addresses are represented as eight groups of four <a href="/wiki/Hexadecimal" title="Hexadecimal">hexadecimal</a> digits with the groups being separated by colons, for example 2001:0db8:0000:0042:0000:8a2e:0370:7334, but methods to abbreviate this full notation exist.</p></textarea>
+            </div>
+        </div>
+        <div class="col-sm-2"></div>
+        <div class="col-sm-5">
+            <div>
+            <textarea rows="3" id="computer" class="form-control custom-control"
+                      placeholder="Generated HTML by Automated Linker..."
+                      style="resize:none"><a target="_blank" href="http://en.wikipedia.org/wiki/Internet Protocol">Internet Protocol</a> version 6 (IPv6) is the most recent version of the Internet Protocol (IP), the communications protocol that provides an identification and location system for computers on networks and routes traffic across the Internet. IPv6 was developed by the <a target="_blank" href="http://en.wikipedia.org/wiki/Internet Engineering Task Force">Internet Engineering Task Force</a> (IETF) to deal with the long-anticipated problem of <a target="_blank" href="http://en.wikipedia.org/wiki/IPv4 address exhaustion">IPv4 address exhaustion</a>. IPv6 is intended to replace IPv4.
+
+Every device on the Internet is assigned an <a target="_blank" href="http://en.wikipedia.org/wiki/IP address">IP address</a> for identification and location definition. With the rapid growth of the Internet after commercialization in the 1990s, it became evident that far more addresses than the IPv4 address space has available were necessary to connect <a target="_blank" href="http://en.wikipedia.org/wiki/New Device">new device</a>s in the future. By 1998, the Internet Engineering Task Force (IETF) had formalized the successor protocol. IPv6 uses a 128-bit address, allowing 2128, or approximately 3.4×1038 addresses, or more than 7.9×1028 times as many as IPv4, which uses 32-bit addresses and provides approximately 4.3 billion addresses. The two protocols are not designed to be interoperable, complicating the transition to IPv6. However, several <a target="_blank" href="http://en.wikipedia.org/wiki/IPv6 transition mechanisms">IPv6 transition mechanisms</a> have been devised to permit communication between IPv4 and IPv6 hosts.</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div id="hidden"></div>
+    </div>
+    <div class="row top-buffer">
+        <div class="btn-group">
+          <button id="calculate" class="btn btn-default btn-lg" type="button">
+            Calculate
+          </button>
+        </div>
+
+    </div>
+    <div class="row top-buffer">
+        <a href="#">Precision <span class="badge" id="precision"></span></a>
+        <a href="#">Recall <span class="badge" id="recall"></span></a>
+
+    </div>
+</div>
+    <script src="compare.js" type="text/javascript"></script>
+</body>
+</html>
