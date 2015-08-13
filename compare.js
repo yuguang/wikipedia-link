@@ -6,7 +6,9 @@ $('#calculate').click(function () {
   var computer = [];
   $('#hidden').html($('#human').val());
   $('#hidden a').each(function () {
-    human.push($(this).text());
+    if ($(this).attr('href').substring(0, 1) != '#') {
+      human.push($(this).text());
+    }
   });
 
   $('#hidden').html($('#computer').val());
